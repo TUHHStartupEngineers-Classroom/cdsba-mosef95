@@ -1,14 +1,6 @@
----
-title: "Randomized Controlled Trials"
-author: "Moritz Seefeldt"
----
-
-# Assignment 1
-```{r}
-library(ggplot2)
 library(dplyr)
 
-df <- readRDS(("data/abtest_online.rds"))
+df <- readRDS(("content/01_journal/data/abtest_online.rds"))
 
 str(df)
 
@@ -38,27 +30,12 @@ mean_previous_visits <- df %>%
   summarize(mean_previous_visits = mean(previous_visit))
 
 print(mean_previous_visits)
-```
-I would argue the covariates are somewhat balanced across the groups, as can be seen from the plots. However, there is a slight difference in the number of previous visits (mean 2.17 vs. 1.88). 
-
-# Assignment 2
-
-```{r}
 
 model_purchase_amount <- lm(purchase_amount ~ chatbot, data = df)
 summary(model_purchase_amount)
-```
 
-# Assignment 3
-```{r}
-model_purchase_mobile <- lm(purchase_amount ~ chatbot * mobile_device, data = df)
+model_purchase_mobile <- lm(purchase ~ chatbot * mobile_device, data = df)
 summary(model_purchase_mobile)
-```
 
-# Assignment 4
-```{r}
 model_purchase <- glm(purchase ~ chatbot, family=binomial(link='logit'), data = df)
 summary(model_purchase)
-
-```
-The coefficient for the presence of the chatbot (-0,989) indicates that the probability of making a sale is drastically reduced (multiplied by exp(-0.989) =  0.3719485).
