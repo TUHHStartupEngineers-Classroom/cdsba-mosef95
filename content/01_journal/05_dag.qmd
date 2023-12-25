@@ -3,6 +3,73 @@ title: "Directed Acyclic Graphs"
 author: "Moritz Seefeldt"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+# Assignment 1
+```{r}
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(dplyr)
+
+# Confounder
+confounding <- dagify(
+  X ~ Z,
+  Y ~ Z,
+  Y ~ X,
+  coords = list(x = c(Y = 3, Z = 2, X = 1),
+                y = c(Y = 0, Z = 1, X = 0)),
+  labels = list(X = "Parking spot available",
+                Y = "Sales",
+                Z = "Customers")
+)
+
+# Plot DAG
+ggdag(confounding) +
+  #geom_dag_point(color = ggthemr::swatch()[2]) +
+  geom_dag_text(color = "white") +
+  geom_dag_edges(edge_color = "white") +
+  geom_dag_label_repel(aes(label = label))
+```
+# Assignment 2
+```{r}
+df <- readRDS("data/customer_sat.rds")
+str(df)
+df
+
+model1 <- lm(satisfaction ~ follow_ups, data = df)
+summary(model1)
+
+model2 <- lm(satisfaction ~ follow_ups + subscription, data = df)
+summary(model2)
+```
+# Assignment 3
+The estimated coefficient for the number of follow-up calls is negative, meaning the satisfaction is expected to decrease if the customer receives more calls. However, this appears to originate from the connection between the number of follow-up calls and the subscription model.
+
+The estimated coefficient for the number of follow-up calls while accounting for the subscription model is positive, meaning that the satisfaction is expected to increase with the number of calls while within a given subscription model.
+
+This could be indicative of the fact that the customer might be experiencing more issues and problems with the software for more expensive subscription models (while also having higher expectations?). 
+The data still suggests that making more follow-up calls will result in a higher customer satisfaction.
+
+# Assignment 4
+
+```{r}
+
+satisfaction_not_cond <- ggplot(df, aes(x = follow_ups, y = satisfaction)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = F)
+
+# Conditioning on student  
+satisfaction_cond <- ggplot(df, aes(x = follow_ups, y = satisfaction,
+                            color = subscription, 
+                            alpha = subscription)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = F) +
+  scale_color_manual(values = c("Elite" = "red",
+                                "Premium+" = "blue",
+                                "Premium" = "green")) +
+  scale_alpha_manual(values = c("Elite" = 1, "Premium+" = 0.6, "Premium" = 0.2)) +
+  theme(legend.position = "right")
+
+
+satisfaction_not_cond
+satisfaction_cond
+```
