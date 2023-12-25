@@ -1,10 +1,3 @@
----
-title: "Causality"
-author: "Moritz Seefeldt"
----
-# Spurious correlation
-Data taken from https://tylervigen.com/spurious-correlations (accessed 25.12.23)
-```{r}
 library(ggplot2)
 
 #Data taken from https://tylervigen.com/spurious-correlations (accessed 25.12.23)
@@ -24,4 +17,3 @@ ggplot(df, aes(x = year)) +
        y = "Count") +
   scale_color_manual(values = c("Cars sold (in ten-thousands)" = "blue", "Suicides" = "red")) +
   theme_minimal()
-```
