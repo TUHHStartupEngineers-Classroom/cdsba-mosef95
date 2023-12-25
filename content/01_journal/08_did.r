@@ -1,12 +1,6 @@
----
-title: "Difference-in-Differences"
-author: "Moritz Seefeldt"
----
-
-# Assignment 1
-```{r}
-df <- readRDS("data/hospdd.rds")
+df <- readRDS("content/01_journal/data/hospdd.rds")
 str(df)
+#print(df, n = 300)
 
 #select the hospitals for which the new admission procedure will be applied
 new_procedure_hospitals <- unique(df$hospital[df$procedure == 1])
@@ -25,13 +19,9 @@ DiD_estimate_after <- mean_satisfaction_treated_after - mean_satisfaction_contro
 
 DiD <- DiD_estimate_after - DiD_estimate_before
 cat("Estimated DiD: ", DiD)
-```
-# Assignment 2
-```{r}
+
 model_01 <- lm(satis ~ procedure + month + hospital, data = df)
 summary(model_01)
 
 model_02 <- lm(satis ~ procedure + as.factor(month) + as.factor(hospital), data = df)
 summary(model_02)
-```
-The key difference between including the variables directly or as a factor is that when being included as a factor, each level/value of the variable is treated as a separate category, as can be seen from the summarised results. Consequently, different effects can be observed for each hospital or month.
