@@ -2,7 +2,72 @@
 title: "Instrumental Variables"
 author: "Moritz Seefeldt"
 ---
+# Assignment 1
+```{r}
+df <- readRDS("data/rand_enc.rds")
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+iv_rand_enc <- dagify(
+  Y ~ D,
+  Y ~ U,
+  D ~ U,
+  D ~ Z,
+  exposure = "D",
+  latent = "U",
+  outcome = "Y",
+  coords = list(x = c(U = 1, D = 0, Y = 2, Z = -1),
+                y = c(U = 1, D = 0, Y = 0, Z = 0)),
+  labels = c("D" = "Used new feature", 
+             "Y" = "Time spent on app", 
+             "U" = "Unobserved characteristics",
+             "Z" = "Random encouragement")
+)
+ggdag(iv_rand_enc, text = T) +
+  guides(color = "none") +
+  geom_dag_text(color = "white") +
+  geom_dag_edges(edge_color = "white") +
+  geom_dag_label_repel(aes(label = label))
+```
+# Assignment 2
+```{r}
+naive_model <- lm(time_spent ~ used_ftr, data = df)
+summary(naive_model)
+```
+
+# Assignment 3
+
+## Stable unit treatment value assumption
+The stable unit treatment value assumption is met, since the treatment for one user (usage of the new feature) does not affect the choices of another user.
+
+## Independence assumption
+Since the instrument (encouragement popup) is assigned to users randomly, it makes sense intuitively that there is no factor that influences both the instrument and the treatment (usage of new feature) or outcome (time spent on app).
+
+## Instrument relevance
+The correlation of Z and D is checked using the "first stage":
+```{r}
+first_stage <- lm(used_ftr ~ rand_enc, data = df)
+summary(first_stage)
+```
+Since the p-value is very small, the instrument (encouragement) is highly significant.
+
+## Monotonicity assumption
+The monotonicity assumption is checked using the given framework:
+```{r}
+monotonicity_check <- df %>%
+  mutate(observation_unit = case_when(
+    (rand_enc == 1 & used_ftr == 1) ~ "Complier",
+    (rand_enc == 1 & used_ftr == 0) ~ "Defier",
+    (rand_enc == 0 & used_ftr == 0) ~ "Never taker",
+    (rand_enc == 0 & used_ftr == 1) ~ "Always taker"
+  ))
+
+
+table(monotonicity_check$observation_unit)
+```
+There is about the same number of compliers and defiers. This raises questions about the validity of the instrument. I would argue that the chosen instrument is not a very suitable estimation procedure for this application.
+
+# Assignment 4
+```{r}
+model_iv <- iv_robust(time_spent ~ used_ftr | rand_enc, data = df)
+summary(model_iv)
+```
+The estimate using a naive model leads to a coefficient of 10,82, which has an upward bias compared to the estimate using the IV model (9,738)

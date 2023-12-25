@@ -32,7 +32,7 @@
     "href": "content/01_journal/09_iv.html",
     "title": "Instrumental Variables",
     "section": "",
-    "text": "Note\n\n\n\nYou can delete everything in here and start fresh."
+    "text": "df &lt;- readRDS(\"data/rand_enc.rds\")\n\niv_rand_enc &lt;- dagify(\n  Y ~ D,\n  Y ~ U,\n  D ~ U,\n  D ~ Z,\n  exposure = \"D\",\n  latent = \"U\",\n  outcome = \"Y\",\n  coords = list(x = c(U = 1, D = 0, Y = 2, Z = -1),\n                y = c(U = 1, D = 0, Y = 0, Z = 0)),\n  labels = c(\"D\" = \"Used new feature\", \n             \"Y\" = \"Time spent on app\", \n             \"U\" = \"Unobserved characteristics\",\n             \"Z\" = \"Random encouragement\")\n)\nggdag(iv_rand_enc, text = T) +\n  guides(color = \"none\") +\n  geom_dag_text(color = \"white\") +\n  geom_dag_edges(edge_color = \"white\") +\n  geom_dag_label_repel(aes(label = label))"
   },
   {
     "objectID": "content/01_journal/07_matching.html",
@@ -89,5 +89,33 @@
     "title": "Regression Discontinuity",
     "section": "",
     "text": "Note\n\n\n\nYou can delete everything in here and start fresh."
+  },
+  {
+    "objectID": "content/01_journal/09_iv.html#stable-unit-treatment-value-assumption",
+    "href": "content/01_journal/09_iv.html#stable-unit-treatment-value-assumption",
+    "title": "Instrumental Variables",
+    "section": "3.1 Stable unit treatment value assumption",
+    "text": "3.1 Stable unit treatment value assumption\nThe stable unit treatment value assumption is met, since the treatment for one user (usage of the new feature) does not affect the choices of another user."
+  },
+  {
+    "objectID": "content/01_journal/09_iv.html#independence-assumption",
+    "href": "content/01_journal/09_iv.html#independence-assumption",
+    "title": "Instrumental Variables",
+    "section": "3.2 Independence assumption",
+    "text": "3.2 Independence assumption\nSince the instrument (encouragement popup) is assigned to users randomly, it makes sense intuitively that there is no factor that influences both the instrument and the treatment (usage of new feature) or outcome (time spent on app)."
+  },
+  {
+    "objectID": "content/01_journal/09_iv.html#instrument-relevance",
+    "href": "content/01_journal/09_iv.html#instrument-relevance",
+    "title": "Instrumental Variables",
+    "section": "3.3 Instrument relevance",
+    "text": "3.3 Instrument relevance\nThe correlation of Z and D is checked using the “first stage”:\n\nfirst_stage &lt;- lm(used_ftr ~ rand_enc, data = df)\nsummary(first_stage)\n\n#&gt; \n#&gt; Call:\n#&gt; lm(formula = used_ftr ~ rand_enc, data = df)\n#&gt; \n#&gt; Residuals:\n#&gt;     Min      1Q  Median      3Q     Max \n#&gt; -0.5071 -0.3062 -0.3062  0.4929  0.6938 \n#&gt; \n#&gt; Coefficients:\n#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    \n#&gt; (Intercept) 0.306164   0.006851   44.69   &lt;2e-16 ***\n#&gt; rand_enc    0.200940   0.009624   20.88   &lt;2e-16 ***\n#&gt; ---\n#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n#&gt; \n#&gt; Residual standard error: 0.4811 on 9998 degrees of freedom\n#&gt; Multiple R-squared:  0.04178,    Adjusted R-squared:  0.04169 \n#&gt; F-statistic:   436 on 1 and 9998 DF,  p-value: &lt; 2.2e-16\n\n\nSince the p-value is very small, the instrument (encouragement) is highly significant."
+  },
+  {
+    "objectID": "content/01_journal/09_iv.html#monotonicity-assumption",
+    "href": "content/01_journal/09_iv.html#monotonicity-assumption",
+    "title": "Instrumental Variables",
+    "section": "3.4 Monotonicity assumption",
+    "text": "3.4 Monotonicity assumption\nThe monotonicity assumption is checked using the given framework:\n\nmonotonicity_check &lt;- df %&gt;%\n  mutate(observation_unit = case_when(\n    (rand_enc == 1 & used_ftr == 1) ~ \"Complier\",\n    (rand_enc == 1 & used_ftr == 0) ~ \"Defier\",\n    (rand_enc == 0 & used_ftr == 0) ~ \"Never taker\",\n    (rand_enc == 0 & used_ftr == 1) ~ \"Always taker\"\n  ))\n\n\ntable(monotonicity_check$observation_unit)\n\n#&gt; \n#&gt; Always taker     Complier       Defier  Never taker \n#&gt;         1510         2570         2498         3422\n\n\nThere is about the same number of compliers and defiers. This raises questions about the validity of the instrument. I would argue that the chosen instrument is not a very suitable estimation procedure for this application."
   }
 ]
