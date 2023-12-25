@@ -1,9 +1,3 @@
----
-title: "Statistical Concepts"
----
-
-#Assignments
-```{r}
 getwd()
 random_vars <- readRDS("content/01_journal/data/random_vars.rds")
 #View(random_vars)
@@ -24,19 +18,12 @@ print(x2_mean)
 print(x2_var)
 print(x2_sd)
 
-```
-Comparing the standard deviations can make sense, as it is a measure of the spread (dispersion) of a random variable. In this case, the dispersion of the income is much larger than the dispersion of age, as would be expected.
-
-```{r}
 covariance <- cov(random_vars$age, random_vars$income)
 correlation <- cor(random_vars$age, random_vars$income)
 
 cat("Covariance: ", covariance, "\n")
 cat("Correlation: ", correlation, "\n")
-```
-The correlation is easier to interpret as it is unit-less (between -1 and +1). A correlation of around 0.55 implies a positive, somewhat linear relationship between the two random variables.
 
-```{r}
 subset_minors <- subset(random_vars, age <= 18)
 subset_adults <- subset(random_vars, age >= 18 & age <= 65)
 subset_seniors <- subset(random_vars, age >= 65)
@@ -48,4 +35,3 @@ mean_seniors <- mean(subset_seniors$income)
 print(mean_minors)
 print(mean_adults)
 print(mean_seniors)
-```
