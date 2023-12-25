@@ -1,11 +1,14 @@
----
-title: "Matching and Subclassification"
-author: "Moritz Seefeldt"
----
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(MatchIt)
+library(modelsummary)
 
-# Assignment 1
-```{r}
-df <- readRDS(("data/membership.rds"))
+df <- readRDS(("content/01_journal/data/membership.rds"))
+str(df)
+summary(df)
 
 dag_model <- 'dag {
 bb="0,0,1,1"
@@ -27,21 +30,16 @@ Sex -> Pre_avg_purch
 ggdag_status(dag_model) +
   guides(fill = "none", color = "none") +  # Disable the legend
   geom_dag_edges(edge_color = "white")
-```
-# Assignment 2
-Please find the model summary at the end of this document.
-```{r}
+
 #model <- lm(avg_purch ~ card + pre_avg_purch + age + sex, data = df)
 model <- lm(avg_purch ~ card, data = df)
 summary(model)
-```
-# Assignment 3
-```{r}
+
 cem <- matchit(card ~ pre_avg_purch + age + sex,
                data = df, 
                method = 'cem', 
                estimand = 'ATE')
-#summary(cem)
+summary(cem)
 df_cem = match.data(cem)
 model_cem <- lm(avg_purch ~ card, data = df_cem, weights = weights)
 summary(model_cem)
@@ -51,7 +49,7 @@ nn <- matchit(card ~ pre_avg_purch + age + sex,
               method = "nearest",
               distance = "mahalanobis",
               replace = T)
-#summary(nn)
+summary(nn)
 df_nn <- match.data(nn)
 model_nn <- lm(avg_purch ~ card, data = df_nn, weights = weights)
 summary(model_nn)
@@ -60,13 +58,16 @@ summary(model_nn)
 model_prop <- glm(card ~ pre_avg_purch + age + sex,
                   data = df,
                   family = binomial(link = "logit"))
-#summary(model_prop)
+summary(model_prop)
 df_aug <- df %>% mutate(propensity = predict(model_prop, type = "response"))
 
 # Extend data by IPW scores
 df_ipw <- df_aug %>% mutate(
   ipw = (card/propensity) + ((1-card) / (1-propensity)))
 
+# Look at data with IPW scores
+df_ipw %>% 
+  select(card, pre_avg_purch, age, sex, propensity, ipw)
 
 model_ipw <- lm(avg_purch ~ card,
                 data = df_ipw, 
@@ -83,5 +84,3 @@ modelsummary::modelsummary(list("Naive" = model,
                                 "NN"    = model_nn,
                                 "IPW1"  = model_ipw,
                                 "IPW2"  = model_ipw_trim))
-
-```
